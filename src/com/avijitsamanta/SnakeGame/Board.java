@@ -11,15 +11,15 @@ public class Board extends JPanel implements ActionListener {
     private Image food, tail, head;
     private int dots;
 
+    public static final int WIDTH = 600;
+    public static final int HEIGHT = 500;
+
     private final int DOT_SIZE = 10;  // 300 * 300 = 90000 / 100= 900
-    private final int TOTAL_DOT = 900;
+    private final int TOTAL_DOT = (WIDTH * HEIGHT) / 50;
     private static final int RANDOM_POSITION = 20; // we can chose 1 to 30 because screen size is 300 x 300
 
     private int food_x;
     private int food_y;
-
-    public static final int WIDTH = 300;
-    public static final int HEIGHT = 300;
 
     private final int[] x = new int[TOTAL_DOT];
     private final int[] y = new int[TOTAL_DOT];
@@ -178,8 +178,6 @@ public class Board extends JPanel implements ActionListener {
                 rightDirection = false;
                 downDirection = true;
             }
-
-
         }
     }
 }
