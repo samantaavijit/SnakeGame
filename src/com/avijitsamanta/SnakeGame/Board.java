@@ -2,43 +2,43 @@ package com.avijitsamanta.SnakeGame;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 
-public class Board extends JPanel implements ActionListener {
+public class Board extends JPanel implements ActionListener, KeyListener {
     private Image food, tail, head;
     private int dots;
 
-    public static final int WIDTH = 600;
-    public static final int HEIGHT = 500;
+    private static final int WIDTH = 550;
+    private static final int HEIGHT = 550;
 
     private final int DOT_SIZE = 10;  // 300 * 300 = 90000 / 100= 900
-    private final int TOTAL_DOT = (WIDTH * HEIGHT) / 50;
-    private static final int RANDOM_POSITION = 20; // we can chose 1 to 30 because screen size is 300 x 300
+    private final int TOTAL_DOT = (WIDTH * HEIGHT) / 100;
+    private static final int RANDOM_POSITION = 50; // we can chose 1 to 30 because screen size is 300 x 300
 
     private int food_x;
     private int food_y;
+    private static final int DELAY = 140;
 
     private final int[] x = new int[TOTAL_DOT];
     private final int[] y = new int[TOTAL_DOT];
 
-    private Timer timer;
+    private final Timer timer;
 
     private boolean leftDirection = false;
     private boolean rightDirection = true;
     private boolean upDirection = false;
     private boolean downDirection = false;
     private boolean isPlaying = true;
+    private int score = 0;
 
     public Board() {
-        addKeyListener(new MyKeyAdopter());
+        addKeyListener(this);
         setBackground(Color.BLACK);
         setPreferredSize(new Dimension(WIDTH, HEIGHT));
         setFocusable(true);
         loadImages();
         initGame();
+        timer = new Timer(DELAY, this);
     }
 
     public void loadImages() {
@@ -57,10 +57,7 @@ public class Board extends JPanel implements ActionListener {
             x[i] = 50 - i * DOT_SIZE;  //  x axis 1 dot=50, 2 dot=50-10=40, 3 dot=50-20=30
             y[i] = 50;  //  y axis
         }
-
         locateFood();
-        timer = new Timer(140, this);
-        timer.start();
     }
 
     public void locateFood() {
@@ -90,28 +87,35 @@ public class Board extends JPanel implements ActionListener {
 
         if (leftDirection) {  // Y axis is same
             x[0] -= DOT_SIZE;
+            if (x[0] < 0)
+                x[0] = WIDTH;
         }
         if (rightDirection) {  // y axis is same
             x[0] += DOT_SIZE;
+            if (x[0] > WIDTH)
+                x[0] = 0;
         }
 
-        if (upDirection)  // x axis is same
+        if (upDirection) { // x axis is same
             y[0] -= DOT_SIZE;
-        if (downDirection)  // x axis is same
+            if (y[0] < 0)
+                y[0] = HEIGHT;
+        }
+        if (downDirection) { // x axis is same
             y[0] += DOT_SIZE;
+            if (y[0] > HEIGHT)
+                y[0] = 0;
+        }
     }
 
     public void checkCollision() {
         for (int i = dots; i > 0; i--) {
-            if (x[0] == x[i] && y[0] == y[i]) {
-                isPlaying = false;
-                break;
-            }
+            if (dots > 3)
+                if (x[0] == x[i] && y[0] == y[i]) {
+                    isPlaying = false;
+                    break;
+                }
         }
-
-        if (y[0] >= HEIGHT || y[0] < 0 || x[0] >= WIDTH || x[0] < 0)
-            isPlaying = false;
-
         if (!isPlaying)
             timer.stop();
     }
@@ -119,6 +123,7 @@ public class Board extends JPanel implements ActionListener {
     public void checkFood() {
         if (x[0] == food_x && y[0] == food_y) {
             dots++;
+            score += 2;
             locateFood();
         }
     }
@@ -138,46 +143,66 @@ public class Board extends JPanel implements ActionListener {
                 } else
                     g.drawImage(tail, x[i], y[i], this);
             }
-
             Toolkit.getDefaultToolkit().sync();
+            myScore(g);
         } else {
             gameOver(g);
         }
     }
 
-    private void gameOver(Graphics g) {
-        String msg = "Game Over";
-        Font font = new Font("SAN_SERIF", Font.BOLD, 16);
+    private void myScore(Graphics g) {
+        String msg = "Score " + score;
+        Font font = new Font("SAN_SERIF", Font.BOLD, 18);
         FontMetrics matrices = getFontMetrics(font);
         g.setColor(Color.WHITE);
-        g.drawString(msg, (WIDTH - matrices.stringWidth(msg)) / 2, HEIGHT / 2);
+        g.drawString(msg, (WIDTH - matrices.stringWidth(msg)), 10);
     }
 
-    private class MyKeyAdopter extends KeyAdapter {
-        @Override
-        public void keyPressed(KeyEvent e) {
-            int key = e.getKeyCode();
+    private void gameOver(Graphics g) {
+        String msg = "Game Over";
+        String sc = "Total Score is " + score;
+        Font font = new Font("SAN_SERIF", Font.BOLD, 32);
+        FontMetrics matrices = getFontMetrics(font);
+        g.setColor(Color.WHITE);
+        g.drawString(msg, (WIDTH - matrices.stringWidth(msg)) / 2 + 20, HEIGHT / 2);
+        g.drawString(sc, (WIDTH - matrices.stringWidth(sc)) / 2 + 40, HEIGHT / 2 + 15);
 
-            if (key == KeyEvent.VK_LEFT && !rightDirection) {
-                leftDirection = true;
-                upDirection = false;
-                downDirection = false;
-            }
-            if (key == KeyEvent.VK_RIGHT && !leftDirection) {
-                rightDirection = true;
-                upDirection = false;
-                downDirection = false;
-            }
-            if (key == KeyEvent.VK_UP && !downDirection) {
-                leftDirection = false;
-                rightDirection = false;
-                upDirection = true;
-            }
-            if (key == KeyEvent.VK_DOWN && !upDirection) {
-                leftDirection = false;
-                rightDirection = false;
-                downDirection = true;
-            }
+    }
+
+    @Override
+    public void keyTyped(KeyEvent e) {
+
+    }
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+        int key = e.getKeyCode();
+        timer.start();
+
+        if (key == KeyEvent.VK_LEFT && !rightDirection) {
+            leftDirection = true;
+            upDirection = false;
+            downDirection = false;
         }
+        if (key == KeyEvent.VK_RIGHT && !leftDirection) {
+            rightDirection = true;
+            upDirection = false;
+            downDirection = false;
+        }
+        if (key == KeyEvent.VK_UP && !downDirection) {
+            leftDirection = false;
+            rightDirection = false;
+            upDirection = true;
+        }
+        if (key == KeyEvent.VK_DOWN && !upDirection) {
+            leftDirection = false;
+            rightDirection = false;
+            downDirection = true;
+        }
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
+
     }
 }

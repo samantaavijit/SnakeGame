@@ -10,6 +10,8 @@ public class Snake extends JFrame {
         setLocationRelativeTo(null);  // it set the frame location in center
         setTitle("Snake Game"); // set the title of a frame
         setResizable(false);  // set do not resize
+        setVisible(true);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 
     public static void main(String[] args) {
